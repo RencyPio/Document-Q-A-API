@@ -1,0 +1,8 @@
+.env
+data/
+__pycache__/
+.pytest_cache/
+.venv/
+venv/
+# Personal planning notes: keep out of the public repo
+*Starter Plan.pdf

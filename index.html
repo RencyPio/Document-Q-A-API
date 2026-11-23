@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Document Q&amp;A</title>
+<style>
+  :root {
+    --bg: #f6f6f3; --card: #ffffff; --text: #1d1d1b; --muted: #6b6b66; --line: #e3e3de;
+    --accent: #2f5bd3; --accent-text: #ffffff; --soft: #edf1fc; --ok: #1f7a4d; --ok-soft: #e7f4ec;
+    --err: #a8321f; --err-soft: #fbeceb; --warn-soft: #fbf5e6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #151514; --card: #1f1f1d; --text: #ececea; --muted: #a3a39d; --line: #34342f;
+      --accent: #7c9cf5; --accent-text: #10131c; --soft: #232a3d; --ok: #7fd1a3; --ok-soft: #1c2b22;
+      --err: #f2b8b5; --err-soft: #3a2220; --warn-soft: #2e2a1d;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 40px 16px 64px; }
+  h1 { font-size: 1.8rem; margin: 0 0 6px; letter-spacing: -.01em; }
+  .lead { color: var(--muted); margin: 0 0 28px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; margin-bottom: 16px; }
+  h2 { font-size: 1.05rem; margin: 0 0 14px; display: flex; align-items: center; gap: 10px; }
+  .step { width: 26px; height: 26px; border-radius: 50%; background: var(--soft); color: var(--accent);
+          display: inline-grid; place-items: center; font-size: .85rem; flex: none; }
+  button { font: inherit; font-weight: 600; padding: 9px 18px; border: 0; border-radius: 9px;
+           background: var(--accent); color: var(--accent-text); cursor: pointer; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.link { background: none; color: var(--muted); padding: 4px 8px; font-weight: 500; font-size: .88rem; }
+  button.link:hover { color: var(--accent); }
+  button.remove:hover { color: var(--err); }
+  .drop { display: block; border: 2px dashed var(--line); border-radius: 12px; padding: 26px 16px; text-align: center;
+          color: var(--muted); cursor: pointer; transition: border-color .15s, background .15s; }
+  .drop:hover, .drop.over, .drop:focus-within { border-color: var(--accent); background: var(--soft); }
+  .drop strong { color: var(--accent); }
+  .drop small { display: block; margin-top: 4px; font-size: .85rem; }
+  .docs { list-style: none; margin: 14px 0 0; padding: 0; }
+  .docs li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .docs .icon { width: 34px; height: 34px; border-radius: 7px; background: var(--soft); color: var(--accent);
+                display: grid; place-items: center; font-size: .68rem; font-weight: 700; flex: none; }
+  .docs .name { flex: 1; min-width: 0; overflow-wrap: anywhere; line-height: 1.35; }
+  .docs .info { color: var(--muted); font-size: .85rem; }
+  .notice { margin-top: 12px; padding: 10px 14px; border-radius: 9px; font-size: .93rem; }
+  .notice.ok { background: var(--ok-soft); color: var(--ok); }
+  .notice.err { background: var(--err-soft); color: var(--err); }
+  .notice.info { background: var(--warn-soft); color: var(--text); }
+  textarea { width: 100%; min-height: 84px; padding: 12px; font: inherit; color: inherit; border: 1px solid var(--line);
+             border-radius: 10px; background: var(--bg); resize: vertical; }
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+  .hint { color: var(--muted); font-size: .85rem; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent;
+             border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; margin-right: 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .answer-card { margin-top: 18px; padding: 18px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); }
+  .answer-card.miss { background: var(--warn-soft); }
+  .label { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 6px; }
+  .answer { font-size: 1.05rem; white-space: pre-wrap; }
+  .num { display: inline-block; min-width: 20px; padding: 0 6px; border-radius: 10px; background: var(--soft); color: var(--accent);
+         font-size: .75em; font-weight: 700; text-align: center; vertical-align: 2px; cursor: default; line-height: 1.6; }
+  .sources { margin-top: 18px; }
+  .src { padding: 10px 0; border-top: 1px solid var(--line); }
+  .src-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .src-head b { font-weight: 600; overflow-wrap: anywhere; }
+  .src-head .where { color: var(--muted); font-size: .88rem; }
+  .src p { margin: 4px 0 0; color: var(--muted); font-size: .93rem; white-space: pre-wrap; }
+  details.others { margin-top: 8px; }
+  details.others summary { cursor: pointer; color: var(--muted); font-size: .9rem; padding: 6px 0; }
+  .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; color: var(--muted); font-size: .82rem; }
+  a { color: var(--accent); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Document Q&amp;A</h1>
+  <p class="lead">Upload your PDFs or text files, then ask questions about them in plain English.
+    Every answer comes only from your documents and shows where it found the information.</p>
+
+  <section>
+    <h2><span class="step">1</span>Add your documents</h2>
+    <label class="drop" id="drop">
+      <input id="files" class="sr" type="file" multiple accept=".pdf,.txt,.md">
+      <span id="dropText"><strong>Choose files</strong> or drag them here</span>
+      <small>PDF, .txt or .md · up to 20 MB each</small>
+    </label>
+    <div id="uploadMsg" aria-live="polite"></div>
+    <ul class="docs" id="docs"></ul>
+  </section>
+
+  <section>
+    <h2><span class="step">2</span>Ask a question</h2>
+    <textarea id="question" placeholder="For example: What is the refund policy?" aria-label="Your question"></textarea>
+    <div class="row">
+      <span class="hint" id="askHint">Press Enter to ask · Shift+Enter for a new line</span>
+      <button id="askBtn">Ask</button>
+    </div>
+    <div id="askMsg" aria-live="polite"></div>
+    <div id="result" aria-live="polite"></div>
+  </section>
+
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const NO_ANSWER = "I couldn't find the answer to that in your documents.";
+let docs = [];
+
+function notice(el, kind, html) { el.innerHTML = html ? `<div class="notice ${kind}">${html}</div>` : ""; }
+function plural(n, word) { return `${n} ${word}${n === 1 ? "" : "s"}`; }
+
+// Turn any failed response into one plain sentence.
+async function friendlyError(res) {
+  let detail = "";
+  try { detail = (await res.json()).detail; } catch {}
+  if (Array.isArray(detail)) return "Please check your question and try again.";
+  if (typeof detail === "string" && detail) return detail;
+  if (res.status >= 500) return "Something went wrong on the server. Please try again.";
+  return "That didn't work. Please try again.";
+}
+async function call(url, opts) {
+  let res;
+  try { res = await fetch(url, opts); }
+  catch { throw new Error("Can't reach the server. Check that it's still running, then try again."); }
+  if (!res.ok) throw new Error(await friendlyError(res));
+  return res.status === 204 ? null : res.json();
+}
+
+// ---------- Documents ----------
+function ext(name) { const m = /\.([a-z0-9]+)$/i.exec(name); return m ? m[1].toUpperCase().slice(0, 4) : "DOC"; }
+
+function renderDocs() {
+  $("docs").innerHTML = docs.map((d) => `
+    <li><span class="icon">${esc(ext(d.filename))}</span>
+      <span class="name">${esc(d.filename)}<br>
+        <span class="info">${d.pages ? plural(d.pages, "page") + " · " : ""}${plural(d.chunks, "passage")}</span></span>
+      <button class="link remove" data-id="${esc(d.doc_id)}" data-name="${esc(d.filename)}">Remove</button></li>`).join("");
+  const none = docs.length === 0;
+  $("askBtn").disabled = none;
+  $("askHint").textContent = none ? "Add a document first, then you can ask about it."
+                                  : "Press Enter to ask · Shift+Enter for a new line";
+}
+
+async function loadDocs() {
+  try { docs = await call("/documents"); } catch { docs = []; }
+  renderDocs();
+}
+
+async function upload(fileList) {
+  const files = [...fileList];
+  if (!files.length) return;
+  const form = new FormData();
+  files.forEach((f) => form.append("files", f));
+  $("dropText").innerHTML = `<span class="spinner"></span>Reading ${files.length === 1 ? esc(files[0].name) : plural(files.length, "file")}…`;
+  notice($("uploadMsg"));
+  try {
+    const data = await call("/documents", { method: "POST", body: form });
+    const added = data.indexed.map((d) => `<b>${esc(d.filename)}</b>`).join(", ");
+    notice($("uploadMsg"), "ok", `Added ${added}. You can ask about ${data.indexed.length === 1 ? "it" : "them"} now.`);
+    if (data.skipped.length) {
+      $("uploadMsg").innerHTML += `<div class="notice err">${data.skipped.map((s) => esc(s.reason)).join("<br>")}</div>`;
+    }
+    await loadDocs();
+    $("question").focus();
+  } catch (e) {
+    notice($("uploadMsg"), "err", esc(e.message));
+  } finally {
+    $("dropText").innerHTML = "<strong>Choose files</strong> or drag them here";
+    $("files").value = "";
+  }
+}
+
+$("files").onchange = (e) => upload(e.target.files);
+const drop = $("drop");
+["dragenter", "dragover"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (e) => upload(e.dataTransfer.files));
+
+$("docs").onclick = async (e) => {
+  const btn = e.target.closest("button[data-id]");
+  if (!btn) return;
+  btn.disabled = true;
+  try {
+    await call(`/documents/${encodeURIComponent(btn.dataset.id)}`, { method: "DELETE" });
+    notice($("uploadMsg"), "ok", `Removed <b>${esc(btn.dataset.name)}</b>.`);
+  } catch (err) { notice($("uploadMsg"), "err", esc(err.message)); }
+  await loadDocs();
+};
+
+// ---------- Questions ----------
+function sourceItem(s, n) {
+  const full = s.text.trim();
+  const short = full.length > 240 ? full.slice(0, 240).replace(/\s+\S*$/, "") + "…" : full;
+  const more = short !== full ? `<button class="link" data-more>Show full passage</button>` : "";
+  return `<div class="src" data-full="${esc(full)}"><div class="src-head">${n ? `<span class="num">${n}</span>` : ""}
+    <b>${esc(s.source)}</b><span class="where">${s.page ? "page " + s.page : ""}</span></div>
+    <p>${esc(short)}</p>${more}</div>`;
+}
+
+function renderAnswer(d) {
+  const cited = d.sources.filter((s) => s.cited);
+  const others = d.sources.filter((s) => !s.cited);
+  const numberOf = Object.fromEntries(cited.map((s, i) => [s.chunk_id, i + 1]));
+  // Swap raw chunk IDs like [report.pdf-1a2b3c4d::3] for small numbered markers.
+  const answer = esc(d.answer).replace(/\s*\[([^\[\]]+?::\d+)\]/g, (m, id) => {
+    const n = numberOf[id];
+    if (!n) return "";
+    const s = cited[n - 1];
+    return ` <span class="num" title="${esc(s.source)}${s.page ? ", page " + s.page : ""}">${n}</span>`;
+  });
+  const miss = d.answer.trim() === NO_ANSWER || !d.sources.length;
+  $("result").innerHTML = `
+    <div class="answer-card ${miss ? "miss" : ""}">
+      <div class="label">Answer</div>
+      <div class="answer">${answer}</div>
+      ${miss && d.sources.length ? `<p class="hint">Try rephrasing the question, or add a document that covers it.</p>` : ""}
+      ${cited.length ? `<div class="sources"><div class="label">Where this comes from</div>${cited.map((s, i) => sourceItem(s, i + 1)).join("")}</div>` : ""}
+      ${others.length ? `<details class="others"><summary>${plural(others.length, "other passage")} checked</summary>${others.map((s) => sourceItem(s)).join("")}</details>` : ""}
+      <div class="foot"><span>${d.usage.total_tokens ? `Answered in ${d.latency_ms.total_ms < 1000 ? Math.round(d.latency_ms.total_ms) + " ms" : (d.latency_ms.total_ms / 1000).toFixed(1) + " s"} · ${d.usage.total_tokens} tokens` : ""}</span>
+        ${miss ? "" : `<button class="link" id="copyBtn">Copy answer</button>`}</div>
+    </div>`;
+  const copy = $("copyBtn");
+  if (copy) copy.onclick = () => {
+    const plain = d.answer.replace(/\s*\[[^\[\]]+?::\d+\]/g, "");
+    navigator.clipboard?.writeText(plain).then(() => { copy.textContent = "Copied"; });
+  };
+}
+
+$("result").onclick = (e) => {
+  const btn = e.target.closest("button[data-more]");
+  if (!btn) return;
+  const src = btn.closest(".src");
+  src.querySelector("p").textContent = src.dataset.full;
+  btn.remove();
+};
+
+async function ask() {
+  const question = $("question").value.trim();
+  if (!question) { notice($("askMsg"), "err", "Type a question first."); return; }
+  if (!docs.length) { notice($("askMsg"), "info", "Add a document first, then ask about it."); return; }
+  $("askBtn").disabled = true;
+  $("askBtn").innerHTML = `<span class="spinner"></span>Finding the answer…`;
+  notice($("askMsg"));
+  $("result").innerHTML = "";
+  try {
+    renderAnswer(await call("/ask", { method: "POST", headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ question }) }));
+  } catch (e) {
+    notice($("askMsg"), "err", esc(e.message));
+  } finally {
+    $("askBtn").textContent = "Ask";
+    $("askBtn").disabled = docs.length === 0;
+  }
+}
+
+$("askBtn").onclick = ask;
+$("question").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (!$("askBtn").disabled) ask(); }
+});
+
+loadDocs();
+</script>
+</body>
+</html>
